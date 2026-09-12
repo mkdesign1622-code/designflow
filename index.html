@@ -375,8 +375,9 @@
 
         let isSpinning = false;
         let timerInterval;
-        let timeLeft = 3600;
+        let timeLeft = 3600; // Стартовое время в секундах
         let timerRunning = false;
+        let endTime; // Точное время окончания
 
         function getRandomItem(array) {
             return array[Math.floor(Math.random() * array.length)];
@@ -466,29 +467,53 @@
             display.innerText = `${m}:${s}`;
         }
 
+        // Новая функция расчета времени, не зависящая от замедления вкладок
+        function calculateTime() {
+            if (!timerRunning) return;
+            
+            const now = Date.now();
+            const remaining = Math.round((endTime - now) / 1000);
+            
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                timeLeft = 0;
+                updateTimerDisplay();
+                const btn = document.getElementById('timer-start-btn');
+                btn.innerText = "Время вышло";
+                btn.classList.remove('primary');
+                timerRunning = false;
+            } else {
+                // Обновляем DOM только если секунда реально поменялась
+                if (remaining !== timeLeft) {
+                    timeLeft = remaining;
+                    updateTimerDisplay();
+                }
+            }
+        }
+
         function toggleTimer() {
             const btn = document.getElementById('timer-start-btn');
             
             if (timerRunning) {
+                // Пауза
                 clearInterval(timerInterval);
                 btn.innerText = "Продолжить";
                 btn.classList.remove('primary');
+                timerRunning = false;
             } else {
-                if (timeLeft === 0) return;
+                // Старт / Продолжить
+                if (timeLeft <= 0) return;
+                
+                // Вычисляем точное время окончания на основе реального времени
+                endTime = Date.now() + (timeLeft * 1000);
+                
                 btn.innerText = "Пауза";
                 btn.classList.add('primary');
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerDisplay();
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        btn.innerText = "Время вышло";
-                        btn.classList.remove('primary');
-                        timerRunning = false;
-                    }
-                }, 1000);
+                timerRunning = true;
+                
+                // Интервал обновления (проверяем часто, но DOM обновляется только раз в секунду)
+                timerInterval = setInterval(calculateTime, 200); 
             }
-            timerRunning = !timerRunning;
         }
 
         function resetTimer() {
