@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Flow</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: rgba(255, 255, 255, 0.65);
+            --text-main: #1d1d1f;
+            --text-muted: #86868b;
+            --accent: #007aff;
+            --accent-hover: #005bb5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px; 
+            position: relative;
+        }
+
+        /* Фиксированная обертка для фона, чтобы не ломать скролл */
+        .bg-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .bg-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 10s infinite alternate ease-in-out;
+        }
+        
+        .orb-1 { width: 400px; height: 400px; background: rgba(0, 122, 255, 0.15); top: -100px; left: -100px; }
+        .orb-2 { width: 300px; height: 300px; background: rgba(255, 59, 48, 0.1); bottom: -50px; right: -50px; animation-delay: -5s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
+        .app-container {
+            background: var(--card-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 32px;
+            padding: 40px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            transition: height 0.4s ease, padding 0.4s ease; 
+        }
+
+        /* Стили для профиля и фото */
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .profile-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            margin-bottom: 16px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px; 
+        }
+
+        .slot-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 32px;
+            margin-top: 24px; 
+        }
+
+        .slot {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 24px 20px;
+            min-height: 100px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.02);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .slot-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .task-text {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.5;
+            text-align: left;
+            width: 100%;
+            transition: filter 0.1s;
+        }
+
+        .lang-text {
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: filter 0.1s;
+        }
+
+        .blur-effect {
+            filter: blur(4px);
+            opacity: 0.7;
+        }
+
+        .palette-container {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            transition: filter 0.1s;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .color-hex {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        button {
+            background: var(--text-main);
+            color: #fff;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 100px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        button:hover {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        /* Таймер */
+        .timer-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(0,0,0,0.1);
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.4s ease;
+        }
+
+        .timer-section.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timer-display {
+            font-size: 48px;
+            font-weight: 300;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+            margin-bottom: 16px;
+        }
+
+        .timer-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-timer {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
+        }
+        
+        .btn-timer.primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Подвал с копирайтом */
+        .footer-credit {
+            margin-top: 32px;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* Адаптивность для телефонов */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 24px;
+            }
+            .slot {
+                padding: 20px 16px;
+            }
+            .color-box {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-wrapper">
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- Блок профиля -->
+        <div class="profile-section">
+            <img src="photo_2026-09-12_19-14-46.jpg" alt="maxk.design" class="profile-img">
+        </div>
+
+        <div class="header">
+            <h1>Design Flow</h1>
+        </div>
+
+        <div class="slot-container">
+            <div class="slot">
+                <div class="slot-label">Задание</div>
+                <div class="task-text" id="task-output">
+                    <div style="text-align: center;">Нажми Generate, чтобы получить задачу</div>
+                </div>
+            </div>
+
+            <div class="slot">
+                <div class="slot-label">Палитра</div>
+                <div class="palette-container" id="palette-output">
+                    <span style="color: var(--text-muted); font-size: 14px;">Цвета не заданы</span>
+                </div>
+            </div>
+
+            <div class="slot">
+                <div class="slot-label">Язык интерфейса</div>
+                <div class="lang-text" id="lang-output">Не задан</div>
+            </div>
+        </div>
+
+        <button id="spin-btn" onclick="startSpin()">Сгенерировать задачу</button>
+
+        <div class="timer-section" id="timer-section">
+            <div class="timer-display" id="timer-display">60:00</div>
+            <div class="timer-controls">
+                <button class="btn-timer primary" id="timer-start-btn" onclick="toggleTimer()">Старт</button>
+                <button class="btn-timer" onclick="resetTimer()">Сброс</button>
+            </div>
+        </div>
+
+        <!-- Подпись автора -->
+        <div class="footer-credit">
+            made by maxk.design
+        </div>
+
+    </div>
+
+    <script>
+        const tasks = [
+            "Спроектировать экран онбординга для мобильного фитнес-приложения. Аудитория: новички.<br><br><b>Обязательно:</b><br>• Приветственный заголовок<br>• Визуализация цели (похудение/набор массы)<br>• Кнопка 'Пропустить'<br>• Индикатор прогресса шагов",
+            "Разработать дашборд аналитики для криптобиржи. Основной фокус на чистоту данных.<br><br><b>Обязательно:</b><br>• График изменения портфеля за месяц<br>• Баланс кошелька<br>• Список из 3 последних транзакций<br>• Кнопки быстрой покупки/продажи",
+            "Собрать первый экран промо-страницы новых смарт-часов премиум-класса.<br><br><b>Обязательно:</b><br>• Крупный рендер устройства в центре<br>• Акцентный типографический заголовок<br>• Краткий список фич (влагозащита, пульс)<br>• Кнопка 'Предзаказ'",
+            "Сделать интерфейс корзины покупок для люксового бренда одежды.<br><br><b>Обязательно:</b><br>• Крупное стильное превью товара<br>• Селекторы размера и количества<br>• Поле для промокода<br>• Блок с расчетом стоимости доставки",
+            "Создать главную страницу сайта-визитки для независимого fashion-фотографа.<br><br><b>Обязательно:</b><br>• Нестандартная сетка для вывода галереи<br>• Скрытое меню-бургер<br>• Имя фотографа крупной типографикой",
+            "Спроектировать интерфейс записи на онлайн-курсы по 3D-моделированию.<br><br><b>Обязательно:</b><br>• 3 карточки тарифов с перечислением модулей<br>• Блок с датой старта потока<br>• Форма захвата контактов для консультации",
+            "Продумать структуру главной страницы онлайн-журнала об архитектуре.<br><br><b>Обязательно:</b><br>• Крупный заголовок издания<br>• Асимметричная сетка вывода свежих новостей<br>• Акцентный блок 'Выбор редакции'",
+            "Разработать меню доставки для крафтовой бургерной в виде мобильного веб-приложения.<br><br><b>Обязательно:</b><br>• Категории блюд с горизонтальным скроллом<br>• Карточка товара с чекбоксами для добавок<br>• Фиксированная кнопка перехода к оплате",
+            "Собрать набор из 3-х скриншотов для AppStore (приложение для медитации).<br><br><b>Обязательно:</b><br>• Экран аудио-плеера с фоном<br>• Экран статистики личных сессий<br>• Календарь для отслеживания эмоций",
+            "Нарисовать интерактивный виджет прогноза погоды для панели умного дома.<br><br><b>Обязательно:</b><br>• Текущая температура и влажность<br>• Сила ветра<br>• Компактный почасовой прогноз",
+            "Спроектировать сложное выпадающее мега-меню (Mega Menu) для магазина электроники.<br><br><b>Обязательно:</b><br>• Категории слева<br>• Подкатегории по центру с иконками<br>• Промо-баннер с текущей акцией справа",
+            "Разработать дизайн двустороннего флаера для открытия новой спешалти-кофейни.<br><br><b>Обязательно:</b><br>• Лицевая сторона: сочный визуальный акцент и оффер<br>• Обратная сторона: минималистичная карта проезда и QR-код",
+            "Спроектировать экран перевода средств в банковском приложении.<br><br><b>Обязательно:</b><br>• Карусель выбора карты списания<br>• Крупное поле ввода суммы перевода<br>• Блок с аватарками недавних получателей<br>• Кнопка подтверждения",
+            "Создать карточку товара для интернет-магазина премиальной парфюмерии.<br><br><b>Обязательно:</b><br>• Эстетичное фото флакона<br>• Блок с описанием нот аромата (верхние, базовые)<br>• Переключатель объема (50ml / 100ml)<br>• Кнопка 'Добавить в корзину'",
+            "Разработать экран настроек профиля в B2B SaaS платформе.<br><br><b>Обязательно:</b><br>• Боковой сайдбар с навигацией<br>• Зона загрузки и изменения аватара<br>• Поля для смены пароля<br>• Тумблеры (toggles) для настройки уведомлений",
+            "Сделать экран бронирования номера в приложении отеля.<br><br><b>Обязательно:</b><br>• Галерея фотографий номера (слайдер)<br>• Визуальный календарь для дат заезда/выезда<br>• Иконки доступных удобств (Wi-Fi, Завтрак)<br>• Итоговая цена за весь период",
+            "Спроектировать интерфейс центрального дисплея электромобиля (раздел климат-контроля).<br><br><b>Обязательно:</b><br>• Визуализация салона авто сверху<br>• Ползунки температуры для водителя и пассажира<br>• Кнопки подогрева сидений<br>• Индикатор заряда батареи в углу",
+            "Разработать интерфейс кассы (POS) на iPad для баристы.<br><br><b>Обязательно:</b><br>• Сетка популярных напитков с иконками<br>• Панель текущего заказа (чек) справа<br>• Селектор размера стакана (S, M, L)<br>• Крупная кнопка 'К оплате'",
+            "Создать главный экран лендинга для современного архитектурного бюро.<br><br><b>Обязательно:</b><br>• Полноэкранное фоновое фото реализованного проекта<br>• Массивный, строгий заголовок<br>• Краткое описание философии студии<br>• Кнопка 'Смотреть портфолио'",
+            "Спроектировать экран записи к врачу в мобильном приложении клиники.<br><br><b>Обязательно:</b><br>• Карточка врача (фото, специализация, рейтинг)<br>• Горизонтальный скролл с доступными днями<br>• Сетка кнопок с часами приема<br>• Кнопка 'Подтвердить запись'",
+            "Собрать главную страницу приложения онлайн-кинотеатра для ТВ (Smart TV).<br><br><b>Обязательно:</b><br>• Большой промо-баннер новинки в верхней части<br>• Горизонтальная карусель 'Продолжить просмотр'<br>• Горизонтальная карусель 'Популярное'<br>• Боковая или верхняя навигация",
+            "Разработать дашборд студента на образовательной платформе.<br><br><b>Обязательно:</b><br>• Карточка текущего курса с прогресс-баром<br>• Список ближайших дедлайнов по домашним заданиям<br>• Блок с полученными достижениями (ачивками)",
+            "Спроектировать интерфейс мобильного приложения для ухода за комнатными растениями.<br><br><b>Обязательно:</b><br>• Карточка растения с индикаторами влажности и света<br>• Календарь полива<br>• Кнопка сканирования растения через AR",
+            "Разработать Kanban-доску для B2B CRM-системы агентства недвижимости.<br><br><b>Обязательно:</b><br>• Колонки этапов сделки (Новый, Встреча, Оформление)<br>• Карточка клиента с бюджетом и тегами<br>• Кнопка быстрой фильтрации по объектам",
+            "Создать экран выбора места в самолете для киоска саморегистрации в аэропорту.<br><br><b>Обязательно:</b><br>• Интерактивная карта салона самолета<br>• Индикация занятых, свободных и премиум мест<br>• Итоговый блок с выбранным местом и кнопкой подтверждения",
+            "Спроектировать интерфейс умного холодильника (сенсорный дисплей на двери).<br><br><b>Обязательно:</b><br>• Виджет текущих запасов продуктов (заканчивающиеся подсвечены красным)<br>• Блок с рецептом дня на основе доступных ингредиентов<br>• Кнопка быстрого добавления в список покупок",
+            "Разработать экран шеринга электросамокатов.<br><br><b>Обязательно:</b><br>• Полноэкранная карта с геолокацией самокатов<br>• Нижняя шторка (bottom sheet) с информацией о выбранном самокате (заряд, цена за минуту)<br>• Большая кнопка 'Разблокировать'",
+            "Создать карточку питомца для платформы по усыновлению животных.<br><br><b>Обязательно:</b><br>• Крупная фотография животного<br>• Бейджи с характеристиками (возраст, вес, отношение к детям)<br>• Краткая история питомца<br>• Кнопки 'Забрать домой' и 'Стать опекуном'",
+            "Спроектировать детский финтех-продукт: экран копилки и целей.<br><br><b>Обязательно:</b><br>• Игровой интерфейс с аватаром ребенка<br>• Визуальный прогресс-бар накоплений на конкретную мечту (например, велосипед)<br>• Кнопка 'Попросить у родителей' или 'Выполнить задание за монеты'",
+            "Разработать экран видеоконсультации для приложения телемедицины.<br><br><b>Обязательно:</b><br>• Основная зона с видео врача и миниатюрой пациента<br>• Плавающая панель управления (микрофон, камера, завершить)<br>• Боковой или скрываемый чат для отправки анализов",
+            "Создать интерфейс выбора уровней для фитнес-игры в VR.<br><br><b>Обязательно:</b><br>• Объемные карточки тренировок (Кардио, Силовая, Йога) с рейтингом сложности<br>• Сводка сожженных калорий за неделю<br>• Кнопка 'Быстрый старт'",
+            "Спроектировать главную страницу сервиса бронирования глэмпингов.<br><br><b>Обязательно:</b><br>• Поисковой бар (Куда, Даты, Количество гостей)<br>• Горизонтальный скролл с категориями (В лесу, У воды, С чаном)<br>• Карточки домиков с ценой и рейтингом"
+        ];
+
+        const palettes = [
+            ["#000000", "#F5F5F7", "#007AFF"], 
+            ["#1C1C1E", "#FF9500"], 
+            ["#FFFFFF", "#34C759", "#1D1D1F"], 
+            ["#F2F2F7", "#5856D6", "#FFCC00"], 
+            ["#000000", "#FFFFFF"], 
+            ["#E5E5EA", "#FF3B30", "#1C1C1E"], 
+            ["#F0F8FF", "#007AFF"], 
+            ["#1D1D1F", "#F5F5F7"], 
+            ["#2C2C2E", "#E5E5EA", "#32ADE6"], 
+            ["#1E1E2C", "#B388FF"], 
+            ["#F2F4F3", "#2A3D45", "#DDA77B"], 
+            ["#0B0C10", "#66FCF1", "#45A29E"], 
+            ["#FFF9F5", "#FF8FAB", "#FB6F92"], 
+            ["#001B2E", "#294C60", "#ADB6C4"], 
+            ["#EFE6DD", "#4A3B32"], 
+            ["#F9F9F9", "#A8E6CF", "#1D1D1F"], 
+            ["#232323", "#F25F5C", "#FFE066"], 
+            ["#F4F7F6", "#118AB2", "#073B4C"], 
+            ["#121212", "#E0E0E0", "#757575"],
+            // Новые добавленные палитры
+            ["#F1F8F6", "#2D6A4F", "#D8F3DC"], // Eco Nature
+            ["#0B0C10", "#FCE205", "#FF007F"], // Cyberpunk
+            ["#111111", "#2196F3", "#00E676"], // Fintech Dark
+            ["#FFF1E6", "#FFB5A7", "#FCD5CE"], // Pastel Sunset
+            ["#000814", "#003566", "#FFC300"], // Deep Ocean
+            ["#FAEDCD", "#D4A373", "#CCD5AE"], // Warm Coffee
+            ["#10002B", "#5A189A", "#E0AAFF"], // Violet Vibe
+            ["#2B2D42", "#8D99AE", "#EF233C"], // Retro 80s
+            ["#F5F5F5", "#E0E0E0", "#9E9E9E"], // Minimal Sand
+            ["#121212", "#00FFF5", "#00ADB5"], // Neon Mint
+            ["#FFFBEA", "#FF6B6B", "#4ECDC4"]  // Vibrant Pop
+        ];
+
+        const languages = [
+            "Английский (EN)",
+            "Русский (RU)"
+        ];
+
+        let isSpinning = false;
+        let timerInterval;
+        let timeLeft = 3600; // Стартовое время в секундах
+        let timerRunning = false;
+        let endTime; // Точное время окончания
+
+        function getRandomItem(array) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+
+        function renderPalette(colors) {
+            const container = document.getElementById('palette-output');
+            container.innerHTML = '';
+            
+            colors.forEach(color => {
+                const item = document.createElement('div');
+                item.className = 'color-item';
+                item.innerHTML = `
+                    <div class="color-box" style="background-color: ${color};"></div>
+                    <div class="color-hex">${color}</div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            
+            const btn = document.getElementById('spin-btn');
+            const taskEl = document.getElementById('task-output');
+            const paletteEl = document.getElementById('palette-output');
+            const langEl = document.getElementById('lang-output');
+            const timerSec = document.getElementById('timer-section');
+
+            btn.innerText = "Генерация...";
+            btn.style.opacity = "0.5";
+            
+            timerSec.classList.remove('visible');
+            resetTimer();
+
+            taskEl.classList.add('blur-effect');
+            paletteEl.classList.add('blur-effect');
+            langEl.classList.add('blur-effect');
+
+            let spinCount = 0;
+            const maxSpins = 20;
+
+            const spinInterval = setInterval(() => {
+                taskEl.innerHTML = `<div style="text-align: center;">Обновление базы...</div>`; 
+                renderPalette(getRandomItem(palettes));
+                langEl.innerText = getRandomItem(languages);
+                
+                spinCount++;
+
+                if (spinCount >= maxSpins) {
+                    clearInterval(spinInterval);
+                    finishSpin();
+                }
+            }, 80);
+        }
+
+        function finishSpin() {
+            const btn = document.getElementById('spin-btn');
+            const taskEl = document.getElementById('task-output');
+            const paletteEl = document.getElementById('palette-output');
+            const langEl = document.getElementById('lang-output');
+            const timerSec = document.getElementById('timer-section');
+
+            taskEl.innerHTML = getRandomItem(tasks);
+            renderPalette(getRandomItem(palettes));
+            langEl.innerText = getRandomItem(languages);
+
+            taskEl.classList.remove('blur-effect');
+            paletteEl.classList.remove('blur-effect');
+            langEl.classList.remove('blur-effect');
+
+            btn.innerText = "Сгенерировать заново";
+            btn.style.opacity = "1";
+            
+            setTimeout(() => {
+                timerSec.classList.add('visible');
+            }, 300);
+            
+            isSpinning = false;
+        }
+
+        function updateTimerDisplay() {
+            const display = document.getElementById('timer-display');
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            display.innerText = `${m}:${s}`;
+        }
+
+        // Новая функция расчета времени, не зависящая от замедления вкладок
+        function calculateTime() {
+            if (!timerRunning) return;
+            
+            const now = Date.now();
+            const remaining = Math.round((endTime - now) / 1000);
+            
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                timeLeft = 0;
+                updateTimerDisplay();
+                const btn = document.getElementById('timer-start-btn');
+                btn.innerText = "Время вышло";
+                btn.classList.remove('primary');
+                timerRunning = false;
+            } else {
+                // Обновляем DOM только если секунда реально поменялась
+                if (remaining !== timeLeft) {
+                    timeLeft = remaining;
+                    updateTimerDisplay();
+                }
+            }
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-start-btn');
+            
+            if (timerRunning) {
+                // Пауза
+                clearInterval(timerInterval);
+                btn.innerText = "Продолжить";
+                btn.classList.remove('primary');
+                timerRunning = false;
+            } else {
+                // Старт / Продолжить
+                if (timeLeft <= 0) return;
+                
+                // Вычисляем точное время окончания на основе реального времени
+                endTime = Date.now() + (timeLeft * 1000);
+                
+                btn.innerText = "Пауза";
+                btn.classList.add('primary');
+                timerRunning = true;
+                
+                // Интервал обновления (проверяем часто, но DOM обновляется только раз в секунду)
+                timerInterval = setInterval(calculateTime, 200); 
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 3600;
+            timerRunning = false;
+            updateTimerDisplay();
+            const btn = document.getElementById('timer-start-btn');
+            btn.innerText = "Старт";
+            btn.classList.add('primary');
+        }
+    </script>
+</body>
+</html>
